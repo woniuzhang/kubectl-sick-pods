@@ -39,7 +39,8 @@ func main() {
 		StringVar(&clientConfig.Context)
 	app.Flag("all-namespaces", "If present, list the requested object(s) across all namespaces. Namespace in current context is ignored even if specified with --namespace").
 		Short('A').BoolVar(&clientConfig.AllNamespaces)
-
+	app.Flag("log-taillines", "If present, display the number of last lines of container log, the default is 100.").
+		Short('t').Int64Var(&clientConfig.LogTailLines)
 	_, err := app.Parse(args)
 	if err != nil {
 		appContext, _ := app.ParseContext(args)
@@ -121,8 +122,8 @@ func diagnose(podSelectors types.PodSelectors, clientConfig types.ClientConfig) 
 			if len(notReadyContainers) != 0 {
 				for _, container := range notReadyContainers {
 					fmt.Printf("\tContainer '%s' is not ready!\n", container.Name)
-					fmt.Println("\t\tContainer Logs:")
-					logs, err := client.PodLogs(pod, container.Name)
+					fmt.Printf("\t\tDisplay %d lines of container Logs:\n", client.Logtaillines)
+					logs, err := client.PodLogs(pod, container.Name, &client.Logtaillines)
 					if err == nil {
 						for _, log := range strings.Split(logs, "\n") {
 							fmt.Printf("\t\t\t%s\n", log)
